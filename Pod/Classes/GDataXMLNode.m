@@ -492,7 +492,7 @@ static void RegisterNamespaces(NSDictionary *namespaces, xmlXPathContextPtr xpat
             
             xmlDocPtr doc = NULL;
             int level = 0;
-            int format = 0;
+            int format = 1;
             
             int result = xmlNodeDump(buff, doc, xmlNode_, level, format);
             
