@@ -524,12 +524,12 @@ static void RegisterNamespaces(NSDictionary *namespaces, xmlXPathContextPtr xpat
     return str;
 }
 
-- (BOOL)getLocalNameCString:(char **)localNameStr {
-    if (localNameStr && xmlNode_) {
-        *localNameStr = xmlNode_->name;
+- (BOOL)getLocalNameCString:(char **)localNameCStr {
+    if (localNameCStr && xmlNode_) {
+        *localNameCStr = xmlNode_->name;
     }
 
-    return *localNameStr != NULL;
+    return *localNameCStr != NULL;
 }
 
 - (NSString *)prefix {
@@ -882,7 +882,8 @@ static void RegisterNamespaces(NSDictionary *namespaces, xmlXPathContextPtr xpat
 }
 
 - (NSUInteger)hash {
-    return (NSUInteger) (__bridge void *) [GDataXMLNode class];
+    uint32_t hash = (xmlNode_ && strlen(xmlNode_->name) >= 4) ? (*(uint32_t *)xmlNode_->name) : 0;
+    return (NSUInteger)hash;
 }
 
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)selector {
