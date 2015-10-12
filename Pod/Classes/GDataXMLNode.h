@@ -99,7 +99,7 @@ enum {
 typedef NSUInteger GDataXMLNodeKind;
 
 @interface GDataXMLNode : NSObject <NSCopying> {
-@protected
+@public
     // NSXMLNodes can have a namespace URI or prefix even if not part
     // of a tree; xmlNodes cannot.  When we create nodes apart from
     // a tree, we'll store the dangling prefix or URI in the xmlNode's name,
