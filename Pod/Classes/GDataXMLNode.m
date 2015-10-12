@@ -524,6 +524,14 @@ static void RegisterNamespaces(NSDictionary *namespaces, xmlXPathContextPtr xpat
     return str;
 }
 
+- (BOOL)getLocalNameCString:(char **)localNameStr {
+    if (localNameStr && xmlNode_) {
+        *localNameStr = xmlNode_->name;
+    }
+
+    return *localNameStr != NULL;
+}
+
 - (NSString *)prefix {
     
     NSString *str = nil;

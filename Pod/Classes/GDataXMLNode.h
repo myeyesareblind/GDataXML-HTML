@@ -140,6 +140,7 @@ typedef NSUInteger GDataXMLNodeKind;
 - (GDataXMLNode *)childAtIndex:(unsigned)index;
 
 - (NSString *)localName;
+- (BOOL)getLocalNameCString:(char **)localNameCStr;
 - (NSString *)name;
 - (NSString *)prefix;
 - (NSString *)URI;
