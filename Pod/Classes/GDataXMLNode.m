@@ -18,6 +18,13 @@
 
 #define GDATAXMLNODE_DEFINE_GLOBALS 1
 #import "GDataXMLNode.h"
+#import <libxml/tree.h>
+#import <libxml/parser.h>
+#import <libxml/xmlstring.h>
+#import <libxml/HTMLparser.h>
+#import <libxml/xpath.h>
+#import <libxml/xpathInternals.h>
+
 
 @class NSArray, NSDictionary, NSError, NSString, NSURL;
 @class GDataXMLElement, GDataXMLDocument;
@@ -154,6 +161,30 @@ static void RegisterNamespaces(NSDictionary *namespaces, xmlXPathContextPtr xpat
         }
     }
 }
+
+@interface GDataXMLNode () {
+@protected
+    // NSXMLNodes can have a namespace URI or prefix even if not part
+    // of a tree; xmlNodes cannot.  When we create nodes apart from
+    // a tree, we'll store the dangling prefix or URI in the xmlNode's name,
+    // like
+    //   "prefix:name"
+    // or
+    //   "{http://uri}:name"
+    //
+    // We will fix up the node's namespace and name (and those of any children)
+    // later when adding the node to a tree with addChild: or addAttribute:.
+    // See fixUpNamespacesForNode:.
+    
+    xmlNodePtr xmlNode_; // may also be an xmlAttrPtr or xmlNsPtr
+    BOOL shouldFreeXMLNode_; // if yes, xmlNode_ will be free'd in dealloc
+    
+    // cached values
+    NSString *cachedName_;
+    NSArray *cachedChildren_;
+    NSArray *cachedAttributes_;
+}
+@end
 
 @interface GDataXMLNode (PrivateMethods)
 
@@ -1644,6 +1675,12 @@ static void RegisterNamespaces(NSDictionary *namespaces, xmlXPathContextPtr xpat
 
 @end
 
+@interface GDataXMLDocument () {
+@protected
+    xmlDoc* xmlDoc_; // strong; always free'd in dealloc
+    NSStringEncoding _encoding;
+}
+@end
 
 @interface GDataXMLDocument (PrivateMethods)
 - (void)addStringsCacheToDoc;
