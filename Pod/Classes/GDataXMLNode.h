@@ -39,7 +39,6 @@
 //   -lxml2
 
 
-
 #if (MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4) || defined(GDATA_TARGET_NAMESPACE)
 // we need NSInteger for the 10.4 SDK, or we're using target namespace macros
 #import "GDataDefines.h"
@@ -92,7 +91,31 @@ enum {
 
 typedef NSUInteger GDataXMLNodeKind;
 
+struct _xmlNode;
+typedef struct _xmlNode xmlNode;
+typedef xmlNode *xmlNodePtr;
+
 @interface GDataXMLNode : NSObject <NSCopying> {
+@protected
+    // NSXMLNodes can have a namespace URI or prefix even if not part
+    // of a tree; xmlNodes cannot.  When we create nodes apart from
+    // a tree, we'll store the dangling prefix or URI in the xmlNode's name,
+    // like
+    //   "prefix:name"
+    // or
+    //   "{http://uri}:name"
+    //
+    // We will fix up the node's namespace and name (and those of any children)
+    // later when adding the node to a tree with addChild: or addAttribute:.
+    // See fixUpNamespacesForNode:.
+    
+    xmlNodePtr xmlNode_; // may also be an xmlAttrPtr or xmlNsPtr
+    BOOL shouldFreeXMLNode_; // if yes, xmlNode_ will be free'd in dealloc
+    
+    // cached values
+    NSString *cachedName_;
+    NSArray *cachedChildren_;
+    NSArray *cachedAttributes_;
 }
 
 + (GDataXMLElement *)elementWithName:(NSString *)name;
@@ -141,6 +164,7 @@ typedef NSUInteger GDataXMLNodeKind;
 
 // access to the underlying libxml node; be sure to release the cached values
 // if you change the underlying tree at all
+- (xmlNodePtr)XMLNode;
 - (void)releaseCachedValues;
 
 @end
@@ -171,7 +195,14 @@ typedef NSUInteger GDataXMLNodeKind;
 
 @end
 
+struct _xmlDoc;
+typedef struct _xmlDoc xmlDoc;
+typedef xmlDoc *xmlDocPtr;
+
 @interface GDataXMLDocument : NSObject {
+@protected
+  xmlDoc* xmlDoc_; // strong; always free'd in dealloc
+	NSStringEncoding _encoding;
 }
 
 - (id)initWithXMLString:(NSString *)str encoding:(NSStringEncoding)encoding error:(NSError **)error;
