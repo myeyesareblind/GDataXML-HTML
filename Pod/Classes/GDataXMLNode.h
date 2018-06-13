@@ -174,6 +174,7 @@ typedef xmlNode *xmlNodePtr;
 @interface GDataXMLElement : GDataXMLNode
 
 - (id)initWithXMLString:(NSString *)str error:(NSError **)error;
+- (id)initWithXMLString:(NSString *)str recoverOnErrors:(BOOL)recoverOnErrors error:(NSError **)error;
 - (id)initWithHTMLString:(NSString *)str error:(NSError **)error;
 
 - (NSArray *)namespaces;
@@ -205,6 +206,9 @@ typedef xmlDoc *xmlDocPtr;
   xmlDoc* xmlDoc_; // strong; always free'd in dealloc
 	NSStringEncoding _encoding;
 }
+
+- (id)initWithXMLString:(NSString *)str encoding:(NSStringEncoding)encoding recoverOnErrors:(BOOL)recoverOnErrors error:(NSError **)error;
+- (id)initWithData:(NSData *)data encoding:(NSStringEncoding)encoding recoverOnErrors:(BOOL)recoverOnErrors error:(NSError **)error;
 
 - (id)initWithXMLString:(NSString *)str encoding:(NSStringEncoding)encoding error:(NSError **)error;
 - (id)initWithData:(NSData *)data encoding:(NSStringEncoding)encoding error:(NSError **)error;

@@ -32,6 +32,7 @@
 
 
 static const int kGDataXMLParseOptions = (XML_PARSE_NOCDATA | XML_PARSE_NOBLANKS);
+static const int kGDataXMLParseRecoverOptions = (XML_PARSE_NOCDATA | XML_PARSE_NOBLANKS | XML_PARSE_RECOVER);
 static const int kGDataHTMLParseOptions = (HTML_PARSE_NOWARNING | HTML_PARSE_NOERROR);
 
 // dictionary key callbacks for string cache
@@ -932,6 +933,10 @@ static void RegisterNamespaces(NSDictionary *namespaces, xmlXPathContextPtr xpat
 @implementation GDataXMLElement
 
 - (id)initWithXMLString:(NSString *)str error:(NSError **)error {
+    return [self initWithXMLString:str recoverOnErrors:NO error:error];
+}
+
+- (id)initWithXMLString:(NSString *)str recoverOnErrors:(BOOL)recoverOnErrors error:(NSError **)error {
     
     if (self = [super init]) {
         
@@ -939,7 +944,7 @@ static void RegisterNamespaces(NSDictionary *namespaces, xmlXPathContextPtr xpat
         // NOTE: We are assuming a string length that fits into an int
         xmlDocPtr doc = xmlReadMemory(utf8Str, (int)strlen(utf8Str), NULL, // URL
                                       NULL, // encoding
-                                      kGDataXMLParseOptions);
+                                      recoverOnErrors ? kGDataXMLParseRecoverOptions : kGDataXMLParseOptions);
         if (doc == NULL) {
             if (error) {
                 // TODO(grobbins) use xmlSetGenericErrorFunc to capture error
@@ -1721,8 +1726,17 @@ const char *IANAEncodingCStringFromNSStringEncoding(NSStringEncoding encoding)
 }
 
 - (id)initWithData:(NSData *)data encoding:(NSStringEncoding)encoding error:(NSError **)error {
-    
-	if (self = [super init]) {
+    return [self initWithData:data encoding:encoding recoverOnErrors:NO error:error];
+}
+
+- (id)initWithXMLString:(NSString *)str encoding:(NSStringEncoding)encoding recoverOnErrors:(BOOL)recoverOnErrors error:(NSError **)error {
+    NSData *data = [str dataUsingEncoding:NSUTF8StringEncoding];
+    GDataXMLDocument *doc = [self initWithData:data encoding:encoding recoverOnErrors:recoverOnErrors error:error];
+    return doc;
+}
+
+- (id)initWithData:(NSData *)data encoding:(NSStringEncoding)encoding recoverOnErrors:(BOOL)recoverOnErrors error:(NSError **)error {
+    if (self = [super init]) {
         _encoding = encoding;
         
         const char *baseURL = NULL;
@@ -1731,7 +1745,7 @@ const char *IANAEncodingCStringFromNSStringEncoding(NSStringEncoding encoding)
         
         // NOTE: We are assuming [data length] fits into an int.
         xmlDoc_ = xmlReadMemory((const char*)[data bytes], (int)[data length], baseURL, xmlEncoding,
-                                kGDataXMLParseOptions); // TODO(grobbins) map option values
+                                recoverOnErrors ? kGDataXMLParseRecoverOptions : kGDataXMLParseOptions); // TODO(grobbins) map option values
         if (xmlDoc_ == NULL) {
             if (error) {
                 *error = [NSError errorWithDomain:@"com.google.GDataXML"
@@ -1744,8 +1758,8 @@ const char *IANAEncodingCStringFromNSStringEncoding(NSStringEncoding encoding)
             if (error) *error = NULL;
             [self addStringsCacheToDoc];
         }
-	}
-	
+    }
+    
     return self;
 }
 
